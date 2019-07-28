@@ -1,5 +1,5 @@
 # Chapter 14 Probabilistic Reasoning Over Time
-from utils import (
+from utils4e import (
     element_wise_product, matrix_multiplication,
     vector_to_diagonal, vector_add, scalar_vector_product, inverse_matrix,
     weighted_sample_with_replacement, probability, normalize

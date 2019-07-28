@@ -399,6 +399,8 @@ def normalize(dist):
             assert 0 <= dist[key] <= 1, "Probabilities must be between 0 and 1."
         return dist
     total = sum(dist)
+    if total == 0:
+        return dist
     return [(n / total) for n in dist]
 
 
