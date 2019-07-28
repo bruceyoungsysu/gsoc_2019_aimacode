@@ -268,7 +268,7 @@ def vector_add(a, b):
         return a or b
     if hasattr(a, '__iter__') and hasattr(b, '__iter__'):
         assert len(a) == len(b)
-        return list(map(vector_add, a, b))
+        return tuple(map(vector_add, a, b))
     else:
         try:
             return a+b
