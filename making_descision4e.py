@@ -1,4 +1,3 @@
-# chapter 15-
 from utils4e import (
     argmax, element_wise_product, matrix_multiplication,
     vector_to_diagonal, vector_add, scalar_vector_product, inverse_matrix,
