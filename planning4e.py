@@ -1,4 +1,4 @@
-"""Planning (Chapters 10)
+"""Planning (Chapters 11)
 """
 
 import copy
@@ -8,6 +8,9 @@ from utils import Expr, expr, first
 from logic import FolKB, conjuncts, unify
 from collections import deque
 from functools import reduce as _reduce
+
+# ____________________________________________________________
+# 11.1. Deﬁnition of Classical Planning
 
 
 class PlanningProblem:
@@ -161,10 +164,12 @@ def goal_test(goals, state):
         kb = state
     return all(kb.ask(q) is not False for q in goals)
 
+# 11.1.1 Example domain: Air cargo transport
+
 
 def air_cargo():
     """
-    [Figure 10.1] AIR-CARGO-PROBLEM
+    [Figure 11.1] AIR-CARGO-PROBLEM
 
     An air-cargo shipment problem for delivering cargo to different locations,
     given the starting location and airplanes.
@@ -199,9 +204,11 @@ def air_cargo():
                                 precond='At(p, f) & Plane(p) & Airport(f) & Airport(to)',
                                 effect='At(p, to) & ~At(p, f)')])
 
+# 11.1.2 Example domain: The spare tire problem
+
 
 def spare_tire():
-    """[Figure 10.2] SPARE-TIRE-PROBLEM
+    """[Figure 11.2] SPARE-TIRE-PROBLEM
 
     A problem involving changing the flat tire of a car
     with a spare tire from the trunk.
@@ -237,7 +244,7 @@ def spare_tire():
 
 def three_block_tower():
     """
-    [Figure 10.3] THREE-BLOCK-TOWER
+    [Figure 11.3] THREE-BLOCK-TOWER
 
     A blocks-world problem of stacking three blocks in a certain configuration,
     also known as the Sussman Anomaly.
@@ -265,6 +272,8 @@ def three_block_tower():
                          Action('MoveToTable(b, x)',
                                 precond='On(b, x) & Clear(b) & Block(b)',
                                 effect='On(b, Table) & Clear(x) & ~On(b, x)')])
+
+# 11.1.3 Example domain: The blocks world
 
 
 def simple_blocks_world():
@@ -296,141 +305,6 @@ def simple_blocks_world():
                          Action('FromTable(y, x)',
                                 precond='OnTable(y) & Clear(y) & Clear(x)',
                                 effect='~OnTable(y) & ~Clear(x) & On(y, x)')])
-
-
-def have_cake_and_eat_cake_too():
-    """
-    [Figure 10.7] CAKE-PROBLEM
-
-    A problem where we begin with a cake and want to 
-    reach the state of having a cake and having eaten a cake.
-    The possible actions include baking a cake and eating a cake.
-
-    Example:
-    >>> from planning import *
-    >>> cp = have_cake_and_eat_cake_too()
-    >>> cp.goal_test()
-    False
-    >>> cp.act(expr('Eat(Cake)'))
-    >>> cp.goal_test()
-    False
-    >>> cp.act(expr('Bake(Cake)'))
-    >>> cp.goal_test()
-    True
-    >>>
-    """
-
-    return PlanningProblem(init='Have(Cake)',
-                goals='Have(Cake) & Eaten(Cake)',
-                actions=[Action('Eat(Cake)',
-                                precond='Have(Cake)',
-                                effect='Eaten(Cake) & ~Have(Cake)'),
-                         Action('Bake(Cake)',
-                                precond='~Have(Cake)',
-                                effect='Have(Cake)')])
-
-
-def shopping_problem():
-    """
-    SHOPPING-PROBLEM
-
-    A problem of acquiring some items given their availability at certain stores.
-
-    Example:
-    >>> from planning import *
-    >>> sp = shopping_problem()
-    >>> sp.goal_test()
-    False
-    >>> sp.act(expr('Go(Home, HW)'))
-    >>> sp.act(expr('Buy(Drill, HW)'))
-    >>> sp.act(expr('Go(HW, SM)'))
-    >>> sp.act(expr('Buy(Banana, SM)'))
-    >>> sp.goal_test()
-    False
-    >>> sp.act(expr('Buy(Milk, SM)'))
-    >>> sp.goal_test()
-    True
-    >>>
-    """
-
-    return PlanningProblem(init='At(Home) & Sells(SM, Milk) & Sells(SM, Banana) & Sells(HW, Drill)',
-                goals='Have(Milk) & Have(Banana) & Have(Drill)', 
-                actions=[Action('Buy(x, store)',
-                                precond='At(store) & Sells(store, x)',
-                                effect='Have(x)'),
-                         Action('Go(x, y)',
-                                precond='At(x)',
-                                effect='At(y) & ~At(x)')])
-
-
-def socks_and_shoes():
-    """
-    SOCKS-AND-SHOES-PROBLEM
-
-    A task of wearing socks and shoes on both feet
-
-    Example:
-    >>> from planning import *
-    >>> ss = socks_and_shoes()
-    >>> ss.goal_test()
-    False
-    >>> ss.act(expr('RightSock'))
-    >>> ss.act(expr('RightShoe'))
-    >>> ss.act(expr('LeftSock'))
-    >>> ss.goal_test()
-    False
-    >>> ss.act(expr('LeftShoe'))
-    >>> ss.goal_test()
-    True
-    >>>
-    """
-
-    return PlanningProblem(init='',
-                goals='RightShoeOn & LeftShoeOn',
-                actions=[Action('RightShoe',
-                                precond='RightSockOn',
-                                effect='RightShoeOn'),
-                        Action('RightSock',
-                                precond='',
-                                effect='RightSockOn'),
-                        Action('LeftShoe',
-                                precond='LeftSockOn',
-                                effect='LeftShoeOn'),
-                        Action('LeftSock',
-                                precond='',
-                                effect='LeftSockOn')])
-
-
-def double_tennis_problem():
-    """
-    [Figure 11.10] DOUBLE-TENNIS-PROBLEM
-
-    A multiagent planning problem involving two partner tennis players
-    trying to return an approaching ball and repositioning around in the court.
-
-    Example:
-    >>> from planning import *
-    >>> dtp = double_tennis_problem()
-    >>> goal_test(dtp.goals, dtp.init)
-    False
-    >>> dtp.act(expr('Go(A, RightBaseLine, LeftBaseLine)'))
-    >>> dtp.act(expr('Hit(A, Ball, RightBaseLine)'))
-    >>> goal_test(dtp.goals, dtp.init)
-    False
-    >>> dtp.act(expr('Go(A, LeftNet, RightBaseLine)'))
-    >>> goal_test(dtp.goals, dtp.init)
-    True
-    >>>
-    """
-
-    return PlanningProblem(init='At(A, LeftBaseLine) & At(B, RightNet) & Approaching(Ball, RightBaseLine) & Partner(A, B) & Partner(B, A)',
-                             goals='Returned(Ball) & At(a, LeftNet) & At(a, RightNet)',
-                             actions=[Action('Hit(actor, Ball, loc)',
-                                             precond='Approaching(Ball, loc) & At(actor, loc)',
-                                             effect='Returned(Ball)'),
-                                      Action('Go(actor, to, loc)', 
-                                             precond='At(actor, loc)',
-                                             effect='At(actor, to) & ~At(actor, loc)')])
 
 
 class Level:
@@ -563,586 +437,9 @@ class Level:
         new_kb = FolKB(list(set(self.next_state_links.keys())))
         return Level(new_kb)
 
-
-class Graph:
-    """
-    Contains levels of state and actions
-    Used in graph planning algorithm to extract a solution
-    """
-
-    def __init__(self, planningproblem):
-        self.planningproblem = planningproblem
-        self.kb = FolKB(planningproblem.init)
-        self.levels = [Level(self.kb)]
-        self.objects = set(arg for clause in self.kb.clauses for arg in clause.args)
-
-    def __call__(self):
-        self.expand_graph()
-
-    def expand_graph(self):
-        """Expands the graph by a level"""
-
-        last_level = self.levels[-1]
-        last_level(self.planningproblem.actions, self.objects)
-        self.levels.append(last_level.perform_actions())
-
-    def non_mutex_goals(self, goals, index):
-        """Checks whether the goals are mutually exclusive"""
-
-        goal_perm = itertools.combinations(goals, 2)
-        for g in goal_perm:
-            if set(g) in self.levels[index].mutex:
-                return False
-        return True
-
-
-class GraphPlan:
-    """
-    Class for formulation GraphPlan algorithm
-    Constructs a graph of state and action space
-    Returns solution for the planning problem
-    """
-
-    def __init__(self, planningproblem):
-        self.graph = Graph(planningproblem)
-        self.nogoods = []
-        self.solution = []
-
-    def check_leveloff(self):
-        """Checks if the graph has levelled off"""
-
-        check = (set(self.graph.levels[-1].current_state) == set(self.graph.levels[-2].current_state))
-
-        if check:
-            return True
-
-    def extract_solution(self, goals, index):
-        """Extracts the solution"""
-
-        level = self.graph.levels[index]    
-        if not self.graph.non_mutex_goals(goals, index):
-            self.nogoods.append((level, goals))
-            return
-
-        level = self.graph.levels[index - 1]    
-
-        # Create all combinations of actions that satisfy the goal    
-        actions = []
-        for goal in goals:
-            actions.append(level.next_state_links[goal])    
-
-        all_actions = list(itertools.product(*actions))    
-
-        # Filter out non-mutex actions
-        non_mutex_actions = []    
-        for action_tuple in all_actions:
-            action_pairs = itertools.combinations(list(set(action_tuple)), 2)        
-            non_mutex_actions.append(list(set(action_tuple)))        
-            for pair in action_pairs:            
-                if set(pair) in level.mutex:
-                    non_mutex_actions.pop(-1)
-                    break
-    
-
-        # Recursion
-        for action_list in non_mutex_actions:        
-            if [action_list, index] not in self.solution:
-                self.solution.append([action_list, index])
-
-                new_goals = []
-                for act in set(action_list):                
-                    if act in level.current_action_links:
-                        new_goals = new_goals + level.current_action_links[act]
-
-                if abs(index) + 1 == len(self.graph.levels):
-                    return
-                elif (level, new_goals) in self.nogoods:
-                    return
-                else:
-                    self.extract_solution(new_goals, index - 1)
-
-        # Level-Order multiple solutions
-        solution = []
-        for item in self.solution:
-            if item[1] == -1:
-                solution.append([])
-                solution[-1].append(item[0])
-            else:
-                solution[-1].append(item[0])
-
-        for num, item in enumerate(solution):
-            item.reverse()
-            solution[num] = item
-
-        return solution
-
-    def goal_test(self, kb):
-        return all(kb.ask(q) is not False for q in self.graph.planningproblem.goals)
-
-    def execute(self):
-        """Executes the GraphPlan algorithm for the given problem"""
-
-        while True:
-            self.graph.expand_graph()
-            if (self.goal_test(self.graph.levels[-1].kb) and self.graph.non_mutex_goals(self.graph.planningproblem.goals, -1)):
-                solution = self.extract_solution(self.graph.planningproblem.goals, -1)
-                if solution:
-                    return solution
-            
-            if len(self.graph.levels) >= 2 and self.check_leveloff():
-                return None
-
-
-class Linearize:
-
-    def __init__(self, planningproblem):
-        self.planningproblem = planningproblem
-
-    def filter(self, solution):
-        """Filter out persistence actions from a solution"""
-
-        new_solution = []
-        for section in solution[0]:
-            new_section = []
-            for operation in section:
-                if not (operation.op[0] == 'P' and operation.op[1].isupper()):
-                    new_section.append(operation)
-            new_solution.append(new_section)
-        return new_solution
-
-    def orderlevel(self, level, planningproblem):
-        """Return valid linear order of actions for a given level"""
-
-        for permutation in itertools.permutations(level):
-            temp = copy.deepcopy(planningproblem)
-            count = 0
-            for action in permutation:
-                try:
-                    temp.act(action)
-                    count += 1
-                except:
-                    count = 0
-                    temp = copy.deepcopy(planningproblem)
-                    break
-            if count == len(permutation):
-                return list(permutation), temp
-        return None
-
-    def execute(self):
-        """Finds total-order solution for a planning graph"""
-
-        graphplan_solution = GraphPlan(self.planningproblem).execute()
-        filtered_solution = self.filter(graphplan_solution)
-        ordered_solution = []
-        planningproblem = self.planningproblem
-        for level in filtered_solution:
-            level_solution, planningproblem = self.orderlevel(level, planningproblem)
-            for element in level_solution:
-                ordered_solution.append(element)
-
-        return ordered_solution
-
-
-def linearize(solution):
-    """Converts a level-ordered solution into a linear solution"""
-
-    linear_solution = []
-    for section in solution[0]:
-        for operation in section:
-            if not (operation.op[0] == 'P' and operation.op[1].isupper()):
-                linear_solution.append(operation)
-
-    return linear_solution
-
-
-'''
-[Section 10.13] PARTIAL-ORDER-PLANNER
-
-Partially ordered plans are created by a search through the space of plans
-rather than a search through the state space. It views planning as a refinement of partially ordered plans.
-A partially ordered plan is defined by a set of actions and a set of constraints of the form A < B,
-which denotes that action A has to be performed before action B.
-To summarize the working of a partial order planner,
-1. An open precondition is selected (a sub-goal that we want to achieve).
-2. An action that fulfils the open precondition is chosen.
-3. Temporal constraints are updated.
-4. Existing causal links are protected. Protection is a method that checks if the causal links conflict
-   and if they do, temporal constraints are added to fix the threats.
-5. The set of open preconditions is updated.
-6. Temporal constraints of the selected action and the next action are established.
-7. A new causal link is added between the selected action and the owner of the open precondition.
-8. The set of new causal links is checked for threats and if found, the threat is removed by either promotion or demotion.
-   If promotion or demotion is unable to solve the problem, the planning problem cannot be solved with the current sequence of actions
-   or it may not be solvable at all.
-9. These steps are repeated until the set of open preconditions is empty.
-'''
-
-class PartialOrderPlanner:
-
-    def __init__(self, planningproblem):
-        self.planningproblem = planningproblem
-        self.initialize()
-
-    def initialize(self):
-        """Initialize all variables"""
-        self.causal_links = []
-        self.start = Action('Start', [], self.planningproblem.init)
-        self.finish = Action('Finish', self.planningproblem.goals, [])
-        self.actions = set()
-        self.actions.add(self.start)
-        self.actions.add(self.finish)
-        self.constraints = set()
-        self.constraints.add((self.start, self.finish))
-        self.agenda = set()
-        for precond in self.finish.precond:
-            self.agenda.add((precond, self.finish))
-        self.expanded_actions = self.expand_actions()
-
-    def expand_actions(self, name=None):
-        """Generate all possible actions with variable bindings for precondition selection heuristic"""
-
-        objects = set(arg for clause in self.planningproblem.init for arg in clause.args)
-        expansions = []
-        action_list = []
-        if name is not None:
-            for action in self.planningproblem.actions:
-                if str(action.name) == name:
-                    action_list.append(action)
-        else:
-            action_list = self.planningproblem.actions
-
-        for action in action_list:
-            for permutation in itertools.permutations(objects, len(action.args)):
-                bindings = unify(Expr(action.name, *action.args), Expr(action.name, *permutation))
-                if bindings is not None:
-                    new_args = []
-                    for arg in action.args:
-                        if arg in bindings:
-                            new_args.append(bindings[arg])
-                        else:
-                            new_args.append(arg)
-                    new_expr = Expr(str(action.name), *new_args)
-                    new_preconds = []
-                    for precond in action.precond:
-                        new_precond_args = []
-                        for arg in precond.args:
-                            if arg in bindings:
-                                new_precond_args.append(bindings[arg])
-                            else:
-                                new_precond_args.append(arg)
-                        new_precond = Expr(str(precond.op), *new_precond_args)
-                        new_preconds.append(new_precond)
-                    new_effects = []
-                    for effect in action.effect:
-                        new_effect_args = []
-                        for arg in effect.args:
-                            if arg in bindings:
-                                new_effect_args.append(bindings[arg])
-                            else:
-                                new_effect_args.append(arg)
-                        new_effect = Expr(str(effect.op), *new_effect_args)
-                        new_effects.append(new_effect)
-                    expansions.append(Action(new_expr, new_preconds, new_effects))
-
-        return expansions
-
-    def find_open_precondition(self):
-        """Find open precondition with the least number of possible actions"""
-
-        number_of_ways = dict()
-        actions_for_precondition = dict()
-        for element in self.agenda:
-            open_precondition = element[0]
-            possible_actions = list(self.actions) + self.expanded_actions
-            for action in possible_actions:
-                for effect in action.effect:
-                    if effect == open_precondition:
-                        if open_precondition in number_of_ways:
-                            number_of_ways[open_precondition] += 1
-                            actions_for_precondition[open_precondition].append(action)
-                        else:
-                            number_of_ways[open_precondition] = 1
-                            actions_for_precondition[open_precondition] = [action]
-
-        number = sorted(number_of_ways, key=number_of_ways.__getitem__)
-        
-        for k, v in number_of_ways.items():
-            if v == 0:
-                return None, None, None
-
-        act1 = None
-        for element in self.agenda:
-            if element[0] == number[0]:
-                act1 = element[1]
-                break
-
-        if number[0] in self.expanded_actions:
-            self.expanded_actions.remove(number[0])
-
-        return number[0], act1, actions_for_precondition[number[0]]
-
-    def find_action_for_precondition(self, oprec):
-        """Find action for a given precondition"""
-
-        # either
-        #   choose act0 E Actions such that act0 achieves G
-        for action in self.actions:
-            for effect in action.effect:
-                if effect == oprec:
-                    return action, 0
-
-        # or
-        #   choose act0 E Actions such that act0 achieves G
-        for action in self.planningproblem.actions:
-            for effect in action.effect:
-                if effect.op == oprec.op:
-                    bindings = unify(effect, oprec)
-                    if bindings is None:
-                        break
-                    return action, bindings
-
-    def generate_expr(self, clause, bindings):
-        """Generate atomic expression from generic expression given variable bindings"""
-
-        new_args = []
-        for arg in clause.args:
-            if arg in bindings:
-                new_args.append(bindings[arg])
-            else:
-                new_args.append(arg)
-
-        try:
-            return Expr(str(clause.name), *new_args)
-        except:
-            return Expr(str(clause.op), *new_args)
-        
-    def generate_action_object(self, action, bindings):
-        """Generate action object given a generic action andvariable bindings"""
-
-        # if bindings is 0, it means the action already exists in self.actions
-        if bindings == 0:
-            return action
-
-        # bindings cannot be None
-        else:
-            new_expr = self.generate_expr(action, bindings)
-            new_preconds = []
-            for precond in action.precond:
-                new_precond = self.generate_expr(precond, bindings)
-                new_preconds.append(new_precond)
-            new_effects = []
-            for effect in action.effect:
-                new_effect = self.generate_expr(effect, bindings)
-                new_effects.append(new_effect)
-            return Action(new_expr, new_preconds, new_effects)
-
-    def cyclic(self, graph):
-        """Check cyclicity of a directed graph"""
-
-        new_graph = dict()
-        for element in graph:
-            if element[0] in new_graph:
-                new_graph[element[0]].append(element[1])
-            else:
-                new_graph[element[0]] = [element[1]]
-
-        path = set()
-
-        def visit(vertex):
-            path.add(vertex)
-            for neighbor in new_graph.get(vertex, ()):
-                if neighbor in path or visit(neighbor):
-                    return True
-            path.remove(vertex)
-            return False
-
-        value = any(visit(v) for v in new_graph)
-        return value
-
-    def add_const(self, constraint, constraints):
-        """Add the constraint to constraints if the resulting graph is acyclic"""
-
-        if constraint[0] == self.finish or constraint[1] == self.start:
-            return constraints
-
-        new_constraints = set(constraints)
-        new_constraints.add(constraint)
-
-        if self.cyclic(new_constraints):
-            return constraints
-        return new_constraints
-
-    def is_a_threat(self, precondition, effect):
-        """Check if effect is a threat to precondition"""
-
-        if (str(effect.op) == 'Not' + str(precondition.op)) or ('Not' + str(effect.op) == str(precondition.op)):
-            if effect.args == precondition.args:
-                return True
-        return False
-
-    def protect(self, causal_link, action, constraints):
-        """Check and resolve threats by promotion or demotion"""
-
-        threat = False
-        for effect in action.effect:
-            if self.is_a_threat(causal_link[1], effect):
-                threat = True
-                break
-
-        if action != causal_link[0] and action != causal_link[2] and threat:
-            # try promotion
-            new_constraints = set(constraints)
-            new_constraints.add((action, causal_link[0]))
-            if not self.cyclic(new_constraints):
-                constraints = self.add_const((action, causal_link[0]), constraints)
-            else:
-                # try demotion
-                new_constraints = set(constraints)
-                new_constraints.add((causal_link[2], action))
-                if not self.cyclic(new_constraints):
-                    constraints = self.add_const((causal_link[2], action), constraints)
-                else:
-                    # both promotion and demotion fail
-                    print('Unable to resolve a threat caused by', action, 'onto', causal_link)
-                    return
-        return constraints
-
-    def convert(self, constraints):
-        """Convert constraints into a dict of Action to set orderings"""
-
-        graph = dict()
-        for constraint in constraints:
-            if constraint[0] in graph:
-                graph[constraint[0]].add(constraint[1])
-            else:
-                graph[constraint[0]] = set()
-                graph[constraint[0]].add(constraint[1])
-        return graph
-
-    def toposort(self, graph):
-        """Generate topological ordering of constraints"""
-
-        if len(graph) == 0:
-            return
-
-        graph = graph.copy()
-
-        for k, v in graph.items():
-            v.discard(k)
-
-        extra_elements_in_dependencies = _reduce(set.union, graph.values()) - set(graph.keys())
-
-        graph.update({element:set() for element in extra_elements_in_dependencies})
-        while True:
-            ordered = set(element for element, dependency in graph.items() if len(dependency) == 0)
-            if not ordered:
-                break
-            yield ordered
-            graph = {element: (dependency - ordered) for element, dependency in graph.items() if element not in ordered}
-        if len(graph) != 0:
-            raise ValueError('The graph is not acyclic and cannot be linearly ordered')
-
-    def display_plan(self):
-        """Display causal links, constraints and the plan"""
-
-        print('Causal Links')
-        for causal_link in self.causal_links:
-            print(causal_link)
-
-        print('\nConstraints')
-        for constraint in self.constraints:
-            print(constraint[0], '<', constraint[1])
-
-        print('\nPartial Order Plan')
-        print(list(reversed(list(self.toposort(self.convert(self.constraints))))))
-
-    def execute(self, display=True):
-        """Execute the algorithm"""
-
-        step = 1
-        self.tries = 1
-        while len(self.agenda) > 0:
-            step += 1
-            # select <G, act1> from Agenda
-            try:
-                G, act1, possible_actions = self.find_open_precondition()
-            except IndexError:
-                print('Probably Wrong')
-                break
-
-            act0 = possible_actions[0]
-            # remove <G, act1> from Agenda
-            self.agenda.remove((G, act1))
-
-            # For actions with variable number of arguments, use least commitment principle
-            # act0_temp, bindings = self.find_action_for_precondition(G)
-            # act0 = self.generate_action_object(act0_temp, bindings)
-
-            # Actions = Actions U {act0}
-            self.actions.add(act0)
-
-            # Constraints = add_const(start < act0, Constraints)
-            self.constraints = self.add_const((self.start, act0), self.constraints)
-
-            # for each CL E CausalLinks do
-            #   Constraints = protect(CL, act0, Constraints)
-            for causal_link in self.causal_links:
-                self.constraints = self.protect(causal_link, act0, self.constraints)
-
-            # Agenda = Agenda U {<P, act0>: P is a precondition of act0}
-            for precondition in act0.precond:
-                self.agenda.add((precondition, act0))
-
-            # Constraints = add_const(act0 < act1, Constraints)
-            self.constraints = self.add_const((act0, act1), self.constraints)
-
-            # CausalLinks U {<act0, G, act1>}
-            if (act0, G, act1) not in self.causal_links:
-                self.causal_links.append((act0, G, act1))
-
-            # for each A E Actions do
-            #   Constraints = protect(<act0, G, act1>, A, Constraints)
-            for action in self.actions:
-                self.constraints = self.protect((act0, G, act1), action, self.constraints)
-
-            if step > 200:
-                print('Couldn\'t find a solution')
-                return None, None
-
-        if display:
-            self.display_plan()
-        else:
-            return self.constraints, self.causal_links                
-
-
-def spare_tire_graphplan():
-    """Solves the spare tire problem using GraphPlan"""
-    return GraphPlan(spare_tire()).execute()
-
-def three_block_tower_graphplan():
-    """Solves the Sussman Anomaly problem using GraphPlan"""
-    return GraphPlan(three_block_tower()).execute()
-
-def air_cargo_graphplan():
-    """Solves the air cargo problem using GraphPlan"""
-    return GraphPlan(air_cargo()).execute()
-
-def have_cake_and_eat_cake_too_graphplan():
-    """Solves the cake problem using GraphPlan"""
-    return [GraphPlan(have_cake_and_eat_cake_too()).execute()[1]]
-
-def shopping_graphplan():
-    """Solves the shopping problem using GraphPlan"""
-    return GraphPlan(shopping_problem()).execute()
-
-def socks_and_shoes_graphplan():
-    """Solves the socks and shoes problem using GraphpPlan"""
-    return GraphPlan(socks_and_shoes()).execute()
-
-def simple_blocks_world_graphplan():
-    """Solves the simple blocks world problem"""
-    return GraphPlan(simple_blocks_world()).execute()
-
+# ___________________________________________________________
+# 11.4 Hierarchical Planning
+# 11.4.1 High-level actions
 
 
 class HLA(Action):
@@ -1225,6 +522,8 @@ class HLA(Action):
                         return False
         return True
 
+# 11.4.2 Searching for primitive solutions
+
 
 class Problem(PlanningProblem):
     """
@@ -1304,7 +603,7 @@ class Problem(PlanningProblem):
 
     def hierarchical_search(problem, hierarchy):
         """
-        [Figure 11.5] 'Hierarchical Search, a Breadth First Search implementation of Hierarchical
+        [Figure 11.8] 'Hierarchical Search, a Breadth First Search implementation of Hierarchical
         Forward Planning Search'
         The problem is a real-world problem defined by the problem class, and the hierarchy is
         a dictionary of HLA - refinements (see refinements generator for details)
@@ -1333,24 +632,23 @@ class Problem(PlanningProblem):
             if a.check_precond(state, a.args):
                 state = a(state, a.args).clauses
         return state
-    
 
     def angelic_search(problem, hierarchy, initialPlan):
         """
-	[Figure 11.8] A hierarchical planning algorithm that uses angelic semantics to identify and
-	commit to high-level plans that work while avoiding high-level plans that don’t. 
-	The predicate MAKING-PROGRESS checks to make sure that we aren’t stuck in an infinite regression
-	of refinements. 
-	At top level, call ANGELIC -SEARCH with [Act ] as the initialPlan .
+        [Figure 11.11] A hierarchical planning algorithm that uses angelic semantics to identify and
+        commit to high-level plans that work while avoiding high-level plans that don’t.
+        The predicate MAKING-PROGRESS checks to make sure that we aren’t stuck in an infinite regression
+        of refinements.
+        At top level, call ANGELIC -SEARCH with [Act ] as the initialPlan .
 
-        initialPlan contains a sequence of HLA's with angelic semantics 
+        initialPlan contains a sequence of HLA's with angelic semantics
 
         The possible effects of an angelic HLA in initialPlan are : 
         ~ : effect remove
         $+: effect possibly add
         $-: effect possibly remove
         $$: possibly add or remove
-	"""
+        """
         frontier = deque(initialPlan)
         while True: 
             if not frontier:
@@ -1372,13 +670,11 @@ class Problem(PlanningProblem):
                 for sequence in Problem.refinements(hla, outcome, hierarchy): # find refinements
                     frontier.append(Angelic_Node(outcome.init, plan, prefix + sequence+ suffix, prefix+sequence+suffix))
 
-
     def intersects_goal(problem, reachable_set):
         """
         Find the intersection of the reachable states and the goal
         """
         return [y for x in list(reachable_set.keys()) for y in reachable_set[x] if all(goal in y for goal in problem.goals)] 
-
 
     def is_primitive(plan,  library):
         """
@@ -1390,8 +686,6 @@ class Problem(PlanningProblem):
                 if library["steps"][i]: 
                     return False
         return True
-             
-
 
     def reach_opt(init, plan): 
         """
@@ -1400,7 +694,6 @@ class Problem(PlanningProblem):
         reachable_set = {0: [init]}
         optimistic_description = plan.action #list of angelic actions with optimistic description
         return Problem.find_reachable_set(reachable_set, optimistic_description)
- 
 
     def reach_pes(init, plan): 
         """ 
@@ -1412,8 +705,8 @@ class Problem(PlanningProblem):
 
     def find_reachable_set(reachable_set, action_description):
         """
-	Finds the reachable states of the action_description when applied in each state of reachable set.
-	"""
+        Finds the reachable states of the action_description when applied in each state of reachable set.
+        """
         for i in range(len(action_description)):
             reachable_set[i+1]=[]
             if type(action_description[i]) is Angelic_HLA:
@@ -1475,7 +768,6 @@ class Problem(PlanningProblem):
             i-=1
         return solution
 
-
     def find_previous_state(s_f, reachable_set, i, action):
         """
         Given a final state s_f and an action finds a state s_i in reachable_set 
@@ -1488,10 +780,13 @@ class Problem(PlanningProblem):
                 break
         return s_i
 
+# ___________________________________________________________________
+# 11.6 Time, Schedule, and Resources
+
 
 def job_shop_problem():
     """
-    [Figure 11.1] JOB-SHOP-PROBLEM
+    [Figure 11.13] JOB-SHOP-PROBLEM
 
     A job-shop scheduling problem for assembling two cars,
     with resource and ordering constraints.
@@ -1587,7 +882,6 @@ class Angelic_HLA(HLA):
     def __init__(self, action, precond , effect, duration =0, consume = None, use = None):
         super().__init__(action, precond, effect, duration, consume, use)
 
-
     def convert(self, clauses):
         """
         Converts strings into Exprs
@@ -1623,9 +917,6 @@ class Angelic_HLA(HLA):
                 pass
 
         return clauses
-
-        
-        
 
     def angelic_action(self):
         """
@@ -1691,7 +982,6 @@ class Angelic_HLA(HLA):
             #print('effects',  effects)
 
         return [ HLA(Expr(self.name, self.args), self.precond, effects[i] ) for i in range(len(effects)) ]
-
 
     def compute_parameters(clause, effects):
         """ 
