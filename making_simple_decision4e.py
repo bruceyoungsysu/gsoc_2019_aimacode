@@ -7,7 +7,7 @@ from agents import Agent
 from probability import BayesNet
 import random
 
-# Chapter 15
+# Making Simple Decisions (Chapter 15)
 
 
 class DecisionNetwork(BayesNet):
